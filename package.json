@@ -2,6 +2,10 @@
   "name": "weather-app",
   "version": "1.0.0",
   "description": "App to view weather forecast for a location. Build with Node.js.",
+  "repository": {
+    "url": "https://github.com/dnafication/weather-app.git",
+    "type": "github"
+  },
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -2,29 +2,61 @@ const request = require('request');
 
 require('dotenv').config();
 
-const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/sydney.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
-const url = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/`;
+/**
+ * Returns the geo coordinates for the search term provided in query
+ * @param {string} query
+ * @returns {string} coordinates in string or empty string
+ */
+function getLocationCoordinates(query) {
+  const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`;
 
-request(mapboxUrl, { json: true }, function(err, response, body) {
-  console.log('error:', err || 'no error');
-  console.log('response code:', response && response.statusCode);
-  const place = body.features[0];
-  console.log('coordinates:', place.center);
-  console.log('name:', place.place_name);
+  request(mapboxUrl, { json: true }, function(err, response, body) {
+    if (err) {
+      console.log(
+        'error:',
+        'Unable to connect to location services' || 'no error'
+      );
+      return;
+    }
+    console.log('response code:', response && response.statusCode);
+    if (body.features.length > 0) {
+      const place = body.features[0];
+      console.log('coordinates:', place.center);
+      console.log('name:', place.place_name);
 
-  request(url + place.center.reverse().join(), { json: true }, function(
+      getForecast(place.center.reverse().join());
+    } else {
+      console.log('Your query returned with zero locations');
+    }
+  });
+}
+
+function getForecast(coordinate) {
+  const url = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/`;
+  request(url + coordinate + '?units=auto', { json: true }, function(
     err,
     response,
     body
   ) {
-    console.log('error:', err || 'no error');
+    if (err) {
+      console.log(
+        'error:',
+        'Unable to connect to weather services' || 'no error'
+      );
+      return;
+    }
     console.log('response code:', response && response.statusCode);
     if (response.statusCode === 200) {
       console.log('summary:', body.currently.summary);
       console.log('chance of rain:', body.currently.precipProbability);
       console.log('temperature:', body.currently.temperature);
+    } else if (response.statusCode === 400) {
+      console.log('error:', body.error);
     } else {
       console.log('actual body:', body);
     }
   });
-});
+}
+
+getLocationCoordinates('west ryde');
+// getForecast('sydney');
